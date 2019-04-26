@@ -1,6 +1,8 @@
 import { Client, Message } from 'discord.js';
 import {default as config } from './config.json'
+import {CommandHandler} from "./command_handler";
 
+const commandHandler = new CommandHandler(config.prefix);
 
 const client = new Client();
 
@@ -9,11 +11,7 @@ client.on("ready", () => {
 });
 
 client.on("message", (message: Message): void => {
-    if (message.content.startsWith("ping")) {
-        message.channel.send("pong!");
-    }
+    commandHandler.handleMessage(message);
 });
-
-
 
 client.login(config.token);
