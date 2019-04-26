@@ -1,19 +1,23 @@
 import {Command} from "./commands/command";
-import {pingCommand} from "./commands/pingcommand";
+import {Ping} from "./commands/ping";
 import {Message} from "discord.js";
 import {CommandContext} from "./context/command_context";
-import {lowPriceCommand} from "./commands/lowpricecommand";
+import {Lowprice} from "./commands/lowprice";
+import { Help } from "./commands/help";
 
 export class CommandHandler {
 
     private commands: Command[];
+    private help: Help;
 
     private readonly prefix: string;
 
     constructor(prefix: string) {
-        const commandClasses = [pingCommand, lowPriceCommand];
-
+        const commandClasses = [Ping, Lowprice];
         this.commands = commandClasses.map(commandClass => new commandClass());
+
+        this.help = new Help(this.commands);
+        this.commands.push(this.help);
         this.prefix = prefix;
     }
 
