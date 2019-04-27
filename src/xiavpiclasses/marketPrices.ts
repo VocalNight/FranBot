@@ -1,6 +1,6 @@
 export class MarketPrices {
     CreatorSignatureName: string;
-    isHQ: boolean;
+    IsHQ: boolean;
     PricePerUnit: number;
     PriceTotal: number;
     Quantity: number;
