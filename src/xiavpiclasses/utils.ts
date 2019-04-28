@@ -1,6 +1,6 @@
 import {CommandContext} from "../context/command_context";
 
-export class ServersDatacenters {
+export class Utils {
 
     public checkServers(userCommand: CommandContext): string[] {
         let arrayServers: string[] = userCommand.args[1].split(',');
@@ -44,6 +44,12 @@ export class ServersDatacenters {
             }
         }
         return arrayServers;
+    }
+
+    public currencyFormat(num: number) {
+        return num.toFixed()
+            .replace('.', ',')
+            .replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.')
     }
 
 

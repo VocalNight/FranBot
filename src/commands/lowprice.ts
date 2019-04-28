@@ -10,12 +10,12 @@ import {fromArray} from "rxjs/internal/observable/fromArray";
 import {Searchparams} from "../xiavpiclasses/searchparams";
 import {MarketInformation} from "../xiavpiclasses/marketInformation";
 import {MarketPrices} from "../xiavpiclasses/marketPrices";
-import {ServersDatacenters} from "../xiavpiclasses/serversDatacenters";
+import {Utils} from "../xiavpiclasses/utils";
 
 
 const XIVAPI = require('xivapi-js');
 
-export class Lowprice extends ServersDatacenters implements Command {
+export class Lowprice extends Utils implements Command {
 
     readonly commandName = "lowprice";
     subscription: Subscription;
@@ -94,7 +94,7 @@ export class Lowprice extends ServersDatacenters implements Command {
     private processPricesMultiple(userCommand: CommandContext) {
 
         // Since the Object comes with the servers as keys,
-        // i had to separete them from the body and use zip to add it to the correspondent price information
+        // i had to separate them from the body and use zip to add it to the correspondent price information
 
         this.subscription.add(
             zip(this.servers$, this.markets$
@@ -131,7 +131,7 @@ export class Lowprice extends ServersDatacenters implements Command {
     }
 
     private pushToArray(obj: any): void {
-        this.prices.push(`The lowest price for ${this.itemName}(${this.searchHQ ? 'HQ' : 'NQ'}) in ${obj.server} is ${obj.price.PricePerUnit} gil!`);
+        this.prices.push(`The lowest price for ${this.itemName}(${this.searchHQ ? 'HQ' : 'NQ'}) in ${obj.server} is ${this.currencyFormat(obj.price.PricePerUnit)} gil!`);
     }
 
     private createObservable(promise: Promise<any>): Observable<any> {

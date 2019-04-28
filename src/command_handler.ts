@@ -4,6 +4,7 @@ import {Message} from "discord.js";
 import {CommandContext} from "./context/command_context";
 import {Lowprice} from "./commands/lowprice";
 import { Help } from "./commands/help";
+import {Erp} from "./commands/erp";
 
 export class CommandHandler {
 
@@ -13,7 +14,7 @@ export class CommandHandler {
     private readonly prefix: string;
 
     constructor(prefix: string) {
-        const commandClasses = [Ping, Lowprice];
+        const commandClasses = [Ping, Lowprice, Erp];
         this.commands = commandClasses.map(commandClass => new commandClass());
 
         this.help = new Help(this.commands);
