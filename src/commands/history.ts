@@ -1,17 +1,19 @@
 import {Command} from "./command";
 import {CommandContext} from "../context/command_context";
-import {Utils} from "../xiavpiclasses/utils";
+
 import {Subscription} from "rxjs";
 import {fromPromise} from "rxjs/internal-compatibility";
+import {filter, flatMap, switchMap} from "rxjs/internal/operators";
+
+import {Utils} from "../xiavpiclasses/utils";
 import {MarketInformation} from "../xiavpiclasses/marketInformation";
-import { filter, flatMap, switchMap} from "rxjs/internal/operators";
 import {Searchparams} from "../xiavpiclasses/searchparams";
 import {Results} from "../xiavpiclasses/Results";
 import {MarketHistory} from "../xiavpiclasses/marketHistory";
 
 const XIVAPI = require('xivapi-js');
 
-export class History extends Utils implements Command{
+export class History extends Utils implements Command {
 
     readonly commandName = "history";
     xiv = new XIVAPI();
@@ -45,7 +47,10 @@ export class History extends Utils implements Command{
             .pipe(
                 flatMap((data: Searchparams) => data.Results),
                 filter((result: Results) => result.UrlType === 'Item'),
-                switchMap(result => fromPromise<MarketInformation>(this.xiv.market.get(result.ID, {servers: this.server, max_history: 10}))
+                switchMap(result => fromPromise<MarketInformation>(this.xiv.market.get(result.ID, {
+                    servers: this.server,
+                    max_history: 10
+                }))
                     .pipe(flatMap((market: MarketInformation) => market.History)))
             )
             .subscribe((history: MarketHistory) => this.processHistory(history),
@@ -59,7 +64,7 @@ export class History extends Utils implements Command{
 
     private processHistory(history: MarketHistory): void {
         let date = new Date(parseInt(history.PurchaseDateMS));
-        this.transactions.push(`${("0" + date.getDate()).slice(-2)+ '/' + ("0" + (date.getMonth() + 1)).slice(-2)} - ` +
+        this.transactions.push(`${("0" + date.getDate()).slice(-2) + '/' + ("0" + (date.getMonth() + 1)).slice(-2)} - ` +
             `Sold ${history.Quantity}${history.IsHQ ? '(HQ)' : ''} at ${this.currencyFormat(history.PricePerUnit)} per unit for a total of ${this.currencyFormat(history.PriceTotal)} gil`);
     }
 
