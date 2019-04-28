@@ -12,7 +12,6 @@ import {MarketInformation} from "../xiavpiclasses/marketInformation";
 import {MarketPrices} from "../xiavpiclasses/marketPrices";
 import {Utils} from "../xiavpiclasses/utils";
 
-
 const XIVAPI = require('xivapi-js');
 
 export class Lowprice extends Utils implements Command {
@@ -33,6 +32,7 @@ export class Lowprice extends Utils implements Command {
             this.itemName = `${userCommand.args[0]}`.split('_').join(' ');
             this.searchHQ = userCommand.args[2] ? true : false;
             let serverArray = this.checkServers(userCommand);
+
 
             this.subscription = new Subscription();
 

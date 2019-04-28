@@ -5,6 +5,7 @@ import {CommandContext} from "./context/command_context";
 import {Lowprice} from "./commands/lowprice";
 import { Help } from "./commands/help";
 import {Erp} from "./commands/erp";
+import { History } from "./commands/history";
 
 export class CommandHandler {
 
@@ -14,7 +15,7 @@ export class CommandHandler {
     private readonly prefix: string;
 
     constructor(prefix: string) {
-        const commandClasses = [Ping, Lowprice, Erp];
+        const commandClasses = [Ping, Lowprice, Erp, History];
         this.commands = commandClasses.map(commandClass => new commandClass());
 
         this.help = new Help(this.commands);

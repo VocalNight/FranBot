@@ -1,8 +1,9 @@
 export class MarketHistory {
     CharacterName: string;
-    isHQ: boolean;
+    IsHQ: boolean;
     PricePerUnit: number;
     PriceTotal: number;
     PurchaseDate: number;
+    PurchaseDateMS: string;
     Quantity: number;
 }
