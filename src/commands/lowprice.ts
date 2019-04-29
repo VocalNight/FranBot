@@ -1,18 +1,22 @@
-import {Command} from "./command";
-import {CommandContext} from "../context/command_context";
+import { Command } from "./command";
+import { CommandContext } from "../context/command_context";
 
-import {concatMap, filter, map, reduce, switchMap} from "rxjs/operators";
-import {from, Observable, Subscription, zip} from "rxjs";
-import {Results} from "../xiavpiclasses/Results";
-import {flatMap} from "rxjs/internal/operators";
-import {fromArray} from "rxjs/internal/observable/fromArray";
+import { concatMap, filter, map, reduce, switchMap, tap } from "rxjs/operators";
+import { from, Observable, Subscription, zip } from "rxjs";
+import { Results } from "../xiavpiclasses/Results";
+import { flatMap } from "rxjs/internal/operators";
+import { fromArray } from "rxjs/internal/observable/fromArray";
 
-import {Searchparams} from "../xiavpiclasses/searchparams";
-import {MarketInformation} from "../xiavpiclasses/marketInformation";
-import {MarketPrices} from "../xiavpiclasses/marketPrices";
-import {Utils} from "../xiavpiclasses/utils";
+import { Searchparams } from "../xiavpiclasses/searchparams";
+import { MarketInformation } from "../xiavpiclasses/marketInformation";
+import { MarketPrices } from "../xiavpiclasses/marketPrices";
+import { Utils } from "../xiavpiclasses/utils";
+import { fromPromise } from "rxjs/internal-compatibility";
 
 const XIVAPI = require('xivapi-js');
+
+// Get's the lowest price from a specific server or from multiple servers.
+// You can also specify only the datacenter to get all the servers in that datacenter.
 
 export class Lowprice extends Utils implements Command {
 
@@ -21,7 +25,7 @@ export class Lowprice extends Utils implements Command {
     servers$: Observable<any>;
     markets$: Observable<any>;
     prices: string[] = [];
-    searchHQ: boolean = false;
+    searchHQ: boolean;
     itemName: string;
     xiv = new XIVAPI();
 
@@ -31,11 +35,11 @@ export class Lowprice extends Utils implements Command {
 
             this.itemName = `${userCommand.args[0]}`.split('_').join(' ');
             this.searchHQ = userCommand.args[2] ? true : false;
+
             let serverArray = this.checkServers(userCommand);
-
-
             this.subscription = new Subscription();
 
+            // If server array is still length 1, then only server was specified.
             if (serverArray.length === 1) {
                 this.searchOneServer(userCommand, serverArray[0])
             } else {
@@ -49,15 +53,18 @@ export class Lowprice extends Utils implements Command {
 
     private searchOneServer(userCommand: CommandContext, server: string): void {
 
-        this.subscription.add(this.createObservable(this.xiv.search(this.itemName))
+        this.subscription.add(fromPromise<Searchparams>(this.xiv.search(this.itemName))
             .pipe(
+                // Get the ID from the item and then use it to search the information
+                tap(data => console.log(data)),
                 flatMap((data: Searchparams) => data.Results),
                 filter((result: Results) => result.UrlType === 'Item'),
-                concatMap(result => this.createObservable(this.xiv.market.get(result.ID, {
+                switchMap(result => fromPromise<MarketInformation>(this.xiv.market.get(result.ID, {
                         servers: server,
                         max_history: 1
                     }))
                         .pipe(
+                            // Get only the lowest price.
                             flatMap((market: MarketInformation) => market.Prices),
                             filter((prices: MarketPrices) => this.searchHQ ? prices.IsHQ : !prices.IsHQ),
                             reduce((lowest: number, price: MarketPrices) => price.PricePerUnit < lowest ? price.PricePerUnit : lowest),
@@ -75,11 +82,11 @@ export class Lowprice extends Utils implements Command {
 
     private searchMultipleServers(userCommand: CommandContext): void {
 
-        this.subscription.add(this.createObservable(this.xiv.search(this.itemName))
+        this.subscription.add(fromPromise<Searchparams>(this.xiv.search(this.itemName))
             .pipe(
                 flatMap((data: Searchparams) => data.Results),
                 filter((result: Results) => result.UrlType === 'Item'),
-                switchMap(item => this.createObservable(this.xiv.market.get(item.ID, {
+                switchMap(item => fromPromise(this.xiv.market.get(item.ID, {
                     servers: this.checkServers(userCommand),
                     max_history: 1
                 })))
@@ -99,6 +106,7 @@ export class Lowprice extends Utils implements Command {
         this.subscription.add(
             zip(this.servers$, this.markets$
                 .pipe(
+                    // Using concat to be ABSOLUTELY sure that the order is kept.
                     concatMap((market: MarketInformation) => fromArray(market.Prices)
                         .pipe(filter((prices: MarketPrices) => this.searchHQ ? prices.IsHQ : !prices.IsHQ),
                             reduce((lowest: number, price: MarketPrices) =>
@@ -109,6 +117,8 @@ export class Lowprice extends Utils implements Command {
                 }))
                 .subscribe(
                     (obj: { server: string, price: any }) => {
+                        // I can only send the message to the chat when the observable completes,
+                        // so it's better to add everything to an array first and THEN print it
                         this.pushToArray(obj);
                     }, (error) => (console.log(error)),
                     () => {
@@ -132,10 +142,6 @@ export class Lowprice extends Utils implements Command {
 
     private pushToArray(obj: any): void {
         this.prices.push(`The lowest price for ${this.itemName}(${this.searchHQ ? 'HQ' : 'NQ'}) in ${obj.server} is ${this.currencyFormat(obj.price.PricePerUnit)} gil!`);
-    }
-
-    private createObservable(promise: Promise<any>): Observable<any> {
-        return from(promise);
     }
 
     getHelp(commandPrefix: string): string {
