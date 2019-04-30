@@ -2,7 +2,7 @@ import { Command } from "./command";
 import { CommandContext } from "../context/command_context";
 
 import { concatMap, filter, map, reduce, switchMap, tap } from "rxjs/operators";
-import { from, Observable, Subscription, zip } from "rxjs";
+import { Observable, Subscription, zip } from "rxjs";
 import { Results } from "../xiavpiclasses/Results";
 import { flatMap } from "rxjs/internal/operators";
 import { fromArray } from "rxjs/internal/observable/fromArray";
@@ -36,7 +36,7 @@ export class Lowprice extends Utils implements Command {
             this.itemName = `${userCommand.args[0]}`.split('_').join(' ');
             this.searchHQ = userCommand.args[2] ? true : false;
 
-            let serverArray = this.checkServers(userCommand);
+            let serverArray = this.checkServers(userCommand, 1);
             this.subscription = new Subscription();
 
             // If server array is still length 1, then only server was specified.
@@ -71,6 +71,8 @@ export class Lowprice extends Utils implements Command {
                             map(price => ({price, server})))
                 ))
             .subscribe((obj: { price: any, server: string }) => {
+                console.log("----");
+                console.log(obj);
                     this.pushToArray(obj);
                 },
                 (error) => console.log(error),
@@ -87,7 +89,7 @@ export class Lowprice extends Utils implements Command {
                 flatMap((data: Searchparams) => data.Results),
                 filter((result: Results) => result.UrlType === 'Item'),
                 switchMap(item => fromPromise(this.xiv.market.get(item.ID, {
-                    servers: this.checkServers(userCommand),
+                    servers: this.checkServers(userCommand, 1),
                     max_history: 1
                 })))
             )
@@ -104,11 +106,14 @@ export class Lowprice extends Utils implements Command {
         // i had to separate them from the body and use zip to add it to the correspondent price information
 
         this.subscription.add(
-            zip(this.servers$, this.markets$
+            zip(this.servers$
+                .pipe(tap((data) => console.log(data))), this.markets$
                 .pipe(
                     // Using concat to be ABSOLUTELY sure that the order is kept.
                     concatMap((market: MarketInformation) => fromArray(market.Prices)
-                        .pipe(filter((prices: MarketPrices) => this.searchHQ ? prices.IsHQ : !prices.IsHQ),
+                        .pipe(
+
+                            filter((prices: MarketPrices) => this.searchHQ ? prices.IsHQ : !prices.IsHQ),
                             reduce((lowest: number, price: MarketPrices) =>
                                 price.PricePerUnit < lowest ? price.PricePerUnit : lowest)))
                 ))

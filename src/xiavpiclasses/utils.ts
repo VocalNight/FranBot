@@ -2,8 +2,8 @@ import {CommandContext} from "../context/command_context";
 
 export class Utils {
 
-    public checkServers(userCommand: CommandContext): string[] {
-        let arrayServers: string[] = userCommand.args[1].split(',');
+    public checkServers(userCommand: CommandContext, argsPosition: number): string[] {
+        let arrayServers: string[] = userCommand.args[argsPosition].split(',');
 
         if (arrayServers.length === 1) {
 
