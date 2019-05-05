@@ -52,6 +52,25 @@ export class Utils {
             .replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.')
     }
 
+    public printValues(userCommand: CommandContext, array: any[]) {
+        if (array.length === 0) {
+            userCommand.message.channel.send("The item is either not on the market, or you typed wrong.");
+            return;
+        }
+        let message = '```' + array.join("\n") + '```';
+        userCommand.message.channel.send(message);
+    }
+
+    // get date from milliseconds and transform in day/month format
+    public processDateDayMonth(purchasedDate: number): string {
+        let date = new Date(purchasedDate);
+        return ("0" + date.getDate()).slice(-2) + '/' + ("0" + (date.getMonth() + 1)).slice(-2)
+    }
+
+    public getItemName(name: string): string {
+        return name.split('_').join(' ');
+    }
+
 
    private getAether(): string[] {
         return ["Adamantoise","Cactuar","Faerie","Gilgamesh","Jenova","Midgardsormr","Sargatanas","Siren"];

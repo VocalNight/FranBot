@@ -13,7 +13,6 @@ export class Servers extends Utils implements Command {
 
             this.servers = this.checkServers(userCommand, 0);
             if (this.servers.length > 1) {
-
                 let message = '```' + this.servers.join(", ") + '```';
                 userCommand.message.channel.send(message);
             } else {

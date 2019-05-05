@@ -2,12 +2,12 @@ import {Command} from "./commands/command";
 import {Ping} from "./commands/ping";
 import {Message} from "discord.js";
 import {CommandContext} from "./context/command_context";
-import {Lowprice} from "./commands/lowprice";
+import {LowPrice} from "./commands/lowprice";
 import { Help } from "./commands/help";
 import {Erp} from "./commands/erp";
 import { History } from "./commands/history";
 import {Servers} from "./commands/servers";
-import {MarketOffers} from "./commands/marketOffers";
+import {MarketOffers} from "./commands/marketoffers";
 
 export class CommandHandler {
 
@@ -17,7 +17,7 @@ export class CommandHandler {
     private readonly prefix: string;
 
     constructor(prefix: string) {
-        const commandClasses = [Ping, Lowprice, Erp, History, Servers, MarketOffers];
+        const commandClasses = [Ping, LowPrice, Erp, History, Servers, MarketOffers];
         this.commands = commandClasses.map(commandClass => new commandClass());
 
         this.help = new Help(this.commands);

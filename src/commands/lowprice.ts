@@ -18,7 +18,7 @@ const XIVAPI = require('xivapi-js');
 // Get's the lowest price from a specific server or from multiple servers.
 // You can also specify only the datacenter to get all the servers in that datacenter.
 
-export class Lowprice extends Utils implements Command {
+export class LowPrice extends Utils implements Command {
 
     readonly commandName = "lowprice";
     subscription: Subscription;
@@ -29,11 +29,10 @@ export class Lowprice extends Utils implements Command {
     itemName: string;
     xiv = new XIVAPI();
 
-
     run(userCommand: CommandContext): void {
         if (userCommand.args && userCommand.args.length) {
 
-            this.itemName = `${userCommand.args[0]}`.split('_').join(' ');
+            this.itemName = this.getItemName(userCommand.args[0]);
             this.searchHQ = userCommand.args[2] ? true : false;
 
             let serverArray = this.checkServers(userCommand, 1);
@@ -71,13 +70,12 @@ export class Lowprice extends Utils implements Command {
                             map(price => ({price, server})))
                 ))
             .subscribe((obj: { price: MarketPrices, server: string }) => {
-                    console.log("----");
-                    console.log(obj);
                     this.pushToArray(obj);
                 },
                 (error) => console.log(error),
                 () => {
-                    this.printValues(userCommand);
+                    this.printValues(userCommand, this.prices);
+                    this.prices = [];
                     this.subscription.unsubscribe();
                 }));
     }
@@ -117,7 +115,8 @@ export class Lowprice extends Utils implements Command {
                         this.processPrices(obj);
                     }, (error) => (console.log(error)),
                     () => {
-                        this.printValues(userCommand);
+                        this.printValues(userCommand, this.prices);
+                        this.prices = [];
                         this.subscription.unsubscribe();
                     }
                 )
@@ -144,27 +143,16 @@ export class Lowprice extends Utils implements Command {
         }
     }
 
-    private printValues(userCommand: CommandContext): void {
-        if (this.prices.length === 0) {
-            userCommand.message.channel.send("The item is either not on the market, or you typed wrong.");
-            return;
-        }
-        let message = '```' + this.prices.join("\n") + '```';
-        userCommand.message.channel.send(message);
-        // Gotta reset it!
-        this.prices = [];
-    }
-
-    private pushToArray(obj: {server: string, price: MarketPrices}): void {
+    private pushToArray(obj: { server: string, price: MarketPrices }): void {
         this.prices.push(`The lowest price for ${this.itemName}(${this.searchHQ ? 'HQ' : 'NQ'}) in ${obj.server} is ${this.currencyFormat(obj.price.PricePerUnit)} gil!`);
     }
 
     getHelp(commandPrefix: string): string {
         return "I need the name of the item with underlines and the name of one or more servers." +
-            "\n If you want to search for HQ items, add 'hq' to the end of the command." +
-            "\n Alternatively you can type the name of a datacenter with a capital letter (Primal, Aether, etc)." +
-            "\n I will then give you the lowest unit price of the NQ or HQ item in the server/servers. Type your command like this:" +
-            "\n ```!lowprice Crimson_Cider Ultros,Leviathan```" +
-            "\n or ```!lowprice Crimson_Cider Aether hq```";
+            "\nIf you want to search for HQ items, add 'hq' to the end of the command." +
+            "\nAlternatively you can type the name of a datacenter with a capital letter (Primal, Aether, etc)." +
+            "\nI will then give you the lowest unit price of the NQ or HQ item in the server/servers. Type your command like this:" +
+            "\n```!lowprice Crimson_Cider Ultros,Leviathan```" +
+            "\nor ```!lowprice Crimson_Cider Aether hq```";
     }
 }

@@ -7,4 +7,5 @@ export interface Command {
     getHelp(commandPrefix: string): string;
 
     run(userCommand: CommandContext): void;
+
 }

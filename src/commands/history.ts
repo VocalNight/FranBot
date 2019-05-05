@@ -25,7 +25,7 @@ export class History extends Utils implements Command {
     run(userCommand: CommandContext): void {
         if (userCommand.args && userCommand.args.length === 2) {
 
-            this.itemName = `${userCommand.args[0]}`.split('_').join(' ');
+            this.itemName = this.getItemName(userCommand.args[0]);
             this.server = `${userCommand.args[1]}`;
             this.subscription = new Subscription();
 
@@ -51,27 +51,16 @@ export class History extends Utils implements Command {
             .subscribe((history: MarketHistory) => this.processHistory(history),
                 (error) => console.log(error),
                 () => {
-                    this.printValues(userCommand);
+                    this.printValues(userCommand, this.transactions);
+                    this.transactions = [];
                     this.subscription.unsubscribe();
                 }));
 
     }
 
     private processHistory(history: MarketHistory): void {
-        let date = new Date(parseInt(history.PurchaseDateMS));
-        this.transactions.push(`${("0" + date.getDate()).slice(-2) + '/' + ("0" + (date.getMonth() + 1)).slice(-2)} - ` +
+        this.transactions.push(`${this.processDateDayMonth(parseInt(history.PurchaseDateMS))} - ` +
             `Sold ${history.Quantity}${history.IsHQ ? '(HQ)' : '(NQ)'} at ${this.currencyFormat(history.PricePerUnit)} per unit for a total of ${this.currencyFormat(history.PriceTotal)} gil`);
-    }
-
-    private printValues(userCommand: CommandContext): void {
-        if (this.transactions.length === 0) {
-            userCommand.message.channel.send("The item either was never sold, or you typed wrong.");
-            return;
-        }
-        let message = '```' + this.transactions.join("\n") + '```';
-        userCommand.message.channel.send(message);
-        // Gotta reset it!
-        this.transactions = [];
     }
 
     getHelp(commandPrefix: string): string {

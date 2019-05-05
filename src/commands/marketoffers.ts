@@ -13,7 +13,7 @@ import {MarketPrices} from "../xiavpiclasses/marketPrices";
 
 const XIVAPI = require('xivapi-js');
 
-export class MarketOffers extends Utils implements Command{
+export class MarketOffers extends Utils implements Command {
 
     readonly commandName = 'marketoffers';
     xiv = new XIVAPI();
@@ -26,7 +26,7 @@ export class MarketOffers extends Utils implements Command{
     run(userCommand: CommandContext): void {
         if (userCommand.args && userCommand.args.length === 2) {
 
-            this.itemName = `${userCommand.args[0]}`.split('_').join(' ');
+            this.itemName = this.getItemName(userCommand.args[0]);
             this.server = `${userCommand.args[1]}`;
             this.subscription = new Subscription();
 
@@ -60,7 +60,8 @@ export class MarketOffers extends Utils implements Command{
             .subscribe((listings: MarketPrices) => this.processListings(listings),
                 (error) => console.log(error),
                 () => {
-                    this.printValues(userCommand);
+                    this.printValues(userCommand, this.listings);
+                    this.listings = [];
                     this.subscription.unsubscribe();
                 }));
     }
@@ -68,16 +69,4 @@ export class MarketOffers extends Utils implements Command{
     private processListings(listings: MarketPrices): void {
         this.listings.push(`- ${listings.Quantity}${listings.IsHQ ? '(HQ)' : '(NQ)'} being sold at ${this.currencyFormat(listings.PricePerUnit)} per unit for a total of ${this.currencyFormat(listings.PriceTotal)} gil`);
     }
-
-    private printValues(userCommand: CommandContext): void {
-        if (this.listings.length === 0) {
-            userCommand.message.channel.send("The item either was never sold, or you typed wrong.");
-            return;
-        }
-        let message = '```' + this.listings.join("\n") + `\n\n There are currently ${this.currentListings} offers in the market` + '```';
-        userCommand.message.channel.send(message);
-        // Gotta reset it!
-        this.listings = [];
-    }
-
 }
