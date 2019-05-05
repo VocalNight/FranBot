@@ -10,36 +10,28 @@ export class Utils {
             switch (arrayServers[0]) {
 
                 case "Aether": {
-                    arrayServers = this.getAether();
-                    break;
+                    return this.getAether();
                 }
                 case "Chaos": {
-                    arrayServers = this.getChaos();
-                    break;
+                    return this.getChaos();
                 }
                 case "Elemental": {
-                    arrayServers = this.getElemental();
-                    break;
+                    return this.getElemental();
                 }
                 case "Gaia": {
-                    arrayServers = this.getGaia();
-                    break;
+                    return this.getGaia();
                 }
                 case "Mana": {
-                    arrayServers = this.getMana();
-                    break;
+                    return this.getMana();
                 }
                 case "Primal": {
-                    arrayServers = this.getPrimal();
-                    break;
+                    return this.getPrimal();
                 }
                 case "Crystal": {
-                    arrayServers = this.getCrystal();
-                    break;
+                    return this.getCrystal();
                 }
                 case "Light": {
-                    arrayServers = this.getLight();
-                    break;
+                    return this.getLight();
                 }
             }
         }
