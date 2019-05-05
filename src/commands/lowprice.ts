@@ -6,12 +6,12 @@ import {Observable, Subscription, zip} from "rxjs";
 import {Results} from "../xiavpiclasses/Results";
 import {flatMap} from "rxjs/internal/operators";
 import {fromArray} from "rxjs/internal/observable/fromArray";
+import {fromPromise} from "rxjs/internal-compatibility";
 
 import {Searchparams} from "../xiavpiclasses/searchparams";
 import {MarketInformation} from "../xiavpiclasses/marketInformation";
 import {MarketPrices} from "../xiavpiclasses/marketPrices";
 import {Utils} from "../xiavpiclasses/utils";
-import {fromPromise} from "rxjs/internal-compatibility";
 
 const XIVAPI = require('xivapi-js');
 
@@ -67,10 +67,10 @@ export class Lowprice extends Utils implements Command {
                             // Get only the lowest price.
                             flatMap((market: MarketInformation) => market.Prices),
                             filter((prices: MarketPrices) => this.searchHQ ? prices.IsHQ : !prices.IsHQ),
-                            reduce((lowest: number, price: MarketPrices) => price.PricePerUnit < lowest ? price.PricePerUnit : lowest),
+                            reduce((lowest: MarketPrices, price: MarketPrices) => price.PricePerUnit < lowest.PricePerUnit ? price : lowest),
                             map(price => ({price, server})))
                 ))
-            .subscribe((obj: { price: any, server: string }) => {
+            .subscribe((obj: { price: MarketPrices, server: string }) => {
                     console.log("----");
                     console.log(obj);
                     this.pushToArray(obj);
@@ -128,11 +128,11 @@ export class Lowprice extends Utils implements Command {
     // So i had to change to make sure that if the server dosn't have a listing, it never get's passed to the final response.
     private processPrices(market: { server: string, prices: MarketPrices[] }): void {
 
-        const price: MarketPrices[] = market.prices.filter(price => this.searchHQ ? price.IsHQ : !price.IsHQ);
-        if (price && price.length) {
-            const lowestPrice = price.reduce((lowest: any, price: any) => {
-                if (price.PricePerUnit < lowest) {
-                    return price.PricePerUnit;
+        const priceList: MarketPrices[] = market.prices.filter(price => this.searchHQ ? price.IsHQ : !price.IsHQ);
+        if (priceList && priceList.length) {
+            const lowestPrice = priceList.reduce((lowest: MarketPrices, price: MarketPrices) => {
+                if (price.PricePerUnit < lowest.PricePerUnit) {
+                    return price;
                 } else {
                     return lowest;
                 }
@@ -140,7 +140,6 @@ export class Lowprice extends Utils implements Command {
 
             // I can only send the message to the chat when the observable completes,
             // so it's better to add everything to an array first and THEN print it
-
             this.pushToArray({server: market.server, price: lowestPrice});
         }
     }
@@ -156,7 +155,7 @@ export class Lowprice extends Utils implements Command {
         this.prices = [];
     }
 
-    private pushToArray(obj: any): void {
+    private pushToArray(obj: {server: string, price: MarketPrices}): void {
         this.prices.push(`The lowest price for ${this.itemName}(${this.searchHQ ? 'HQ' : 'NQ'}) in ${obj.server} is ${this.currencyFormat(obj.price.PricePerUnit)} gil!`);
     }
 

@@ -1,5 +1,4 @@
 import { Command } from "./command";
-import { Message } from "discord.js";
 import { CommandContext } from "../context/command_context";
 
 export class Help implements Command {

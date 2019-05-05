@@ -36,11 +36,6 @@ export class History extends Utils implements Command {
         }
     }
 
-    getHelp(commandPrefix: string): string {
-        return "I need the name of the item with underlines and the name of a server. I will give you the last 10 transactions for that item on the server."
-    }
-
-
     private searchHistory(userCommand: CommandContext): void {
 
         this.subscription.add(fromPromise<Searchparams>(this.xiv.search(this.itemName))
@@ -65,7 +60,7 @@ export class History extends Utils implements Command {
     private processHistory(history: MarketHistory): void {
         let date = new Date(parseInt(history.PurchaseDateMS));
         this.transactions.push(`${("0" + date.getDate()).slice(-2) + '/' + ("0" + (date.getMonth() + 1)).slice(-2)} - ` +
-            `Sold ${history.Quantity}${history.IsHQ ? '(HQ)' : ''} at ${this.currencyFormat(history.PricePerUnit)} per unit for a total of ${this.currencyFormat(history.PriceTotal)} gil`);
+            `Sold ${history.Quantity}${history.IsHQ ? '(HQ)' : '(NQ)'} at ${this.currencyFormat(history.PricePerUnit)} per unit for a total of ${this.currencyFormat(history.PriceTotal)} gil`);
     }
 
     private printValues(userCommand: CommandContext): void {
@@ -77,6 +72,10 @@ export class History extends Utils implements Command {
         userCommand.message.channel.send(message);
         // Gotta reset it!
         this.transactions = [];
+    }
+
+    getHelp(commandPrefix: string): string {
+        return "I need the name of the item with underlines and the name of a server. I will give you the last 10 transactions for that item on the server."
     }
 
 }

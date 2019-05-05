@@ -1,8 +1,10 @@
 import {Command} from "./command";
-import {Utils} from "../xiavpiclasses/utils";
 import {CommandContext} from "../context/command_context";
+
 import {Subscription} from "rxjs";
 import {fromPromise} from "rxjs/internal-compatibility";
+
+import {Utils} from "../xiavpiclasses/utils";
 import {Searchparams} from "../xiavpiclasses/searchparams";
 import {filter, flatMap, switchMap, take} from "rxjs/internal/operators";
 import {Results} from "../xiavpiclasses/Results";
@@ -11,7 +13,7 @@ import {MarketPrices} from "../xiavpiclasses/marketPrices";
 
 const XIVAPI = require('xivapi-js');
 
-export class Marketoffers extends Utils implements Command{
+export class MarketOffers extends Utils implements Command{
 
     readonly commandName = 'marketoffers';
     xiv = new XIVAPI();

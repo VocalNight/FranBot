@@ -7,7 +7,7 @@ import { Help } from "./commands/help";
 import {Erp} from "./commands/erp";
 import { History } from "./commands/history";
 import {Servers} from "./commands/servers";
-import {Marketoffers} from "./commands/marketoffers";
+import {MarketOffers} from "./commands/marketOffers";
 
 export class CommandHandler {
 
@@ -17,7 +17,7 @@ export class CommandHandler {
     private readonly prefix: string;
 
     constructor(prefix: string) {
-        const commandClasses = [Ping, Lowprice, Erp, History, Servers, Marketoffers];
+        const commandClasses = [Ping, Lowprice, Erp, History, Servers, MarketOffers];
         this.commands = commandClasses.map(commandClass => new commandClass());
 
         this.help = new Help(this.commands);
