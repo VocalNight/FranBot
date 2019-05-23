@@ -6,6 +6,7 @@ export class Ping implements Command {
 
     run(userCommand: CommandContext): void {
         userCommand.message.channel.send("pong");
+
     }
 
     getHelp(commandPrefix: string): string {

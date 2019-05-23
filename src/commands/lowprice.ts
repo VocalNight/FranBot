@@ -1,7 +1,7 @@
 import {Command} from "./command";
 import {CommandContext} from "../context/command_context";
 
-import {filter, map, reduce, switchMap, tap} from "rxjs/operators";
+import {filter, map, reduce, switchMap, take, tap} from "rxjs/operators";
 import {Observable, Subscription, zip} from "rxjs";
 import {Results} from "../xiavpiclasses/Results";
 import {flatMap} from "rxjs/internal/operators";
@@ -30,8 +30,9 @@ export class LowPrice extends Utils implements Command {
     xiv = new XIVAPI();
 
     run(userCommand: CommandContext): void {
-        if (userCommand.args && userCommand.args.length) {
+        if ((userCommand.args && userCommand.args.length) && userCommand.args[1] != null) {
 
+            console.log(userCommand.args[1]);
             this.itemName = this.getItemName(userCommand.args[0]);
             this.searchHQ = userCommand.args[2] ? true : false;
 
@@ -86,6 +87,7 @@ export class LowPrice extends Utils implements Command {
             .pipe(
                 flatMap((data: Searchparams) => data.Results),
                 filter((result: Results) => result.UrlType === 'Item'),
+                take(1),
                 switchMap(item => fromPromise(this.xiv.market.get(item.ID, {
                     servers: this.checkServers(userCommand, 1),
                     max_history: 1
